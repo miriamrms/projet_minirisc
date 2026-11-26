@@ -5,7 +5,7 @@
 
 #define MEMORY_SIZE (32u * 1024 * 1024) /*la taille de memoire*/
 #define START_MEMORY 0x80000000u /*adresse ou la memoire commence*/
-#define START_PERIFERIQUE 0x10000000u
+#define START_PERIFERIQUE 0x10000000u /* adresse ou les peripheriques commencent */
 
 platform_t* platform_new()
 {
@@ -28,20 +28,22 @@ void platform_free(platform_t *plt) {
 
 int platform_read(platform_t *plt, platform_access_type_t t, uint32_t addr, uint32_t *data) {
     
-    uint32_t size = t + 1; 
-    
+    uint32_t size = t + 1; /* nombre d'octets a lire */
+
+    /* on verifie que l'acces reste dans la memoire */
     if(addr >= START_MEMORY && addr - START_MEMORY + size <= MEMORY_SIZE) {
         uint8_t *mem = (uint8_t*) plt->memory;
-        uint32_t off = addr - START_MEMORY;
+        uint32_t off = addr - START_MEMORY; /* position dans le tableau memoire */
         uint32_t read_data = 0;
 
+        /* on lit les octets un par un et on les place dans read_data */
         for(int i=0; i<size; i++){
             read_data |= (uint32_t)mem[off + i] << (8*i);
         }
         *data = read_data;
         return 0;
     }
-    return -1;
+    return -1; /* si adresse hors memoire */
 } 
 
 int platform_write(platform_t *plt, platform_access_type_t t, uint32_t addr, uint32_t data) {
@@ -70,14 +72,15 @@ int platform_write(platform_t *plt, platform_access_type_t t, uint32_t addr, uin
 }
 
 int platform_load_program(platform_t *plt, const char *file_name) {
-    FILE *f = fopen(file_name, "rb");
+    FILE *f = fopen(file_name, "rb"); /* ouverture en mode binaire */
     if(f == NULL) return -1;
 
+    /* lit au maximum MEMORY_SIZE octets, s'arrete a la fin du fichier */
     size_t n = fread(plt->memory, 1, MEMORY_SIZE, f);
 
     fclose(f);
 
-    if (n==0) return -1;
+    if (n==0) return -1;  /* fichier vide ou erreur de lecture */
     
     return 0;
 }
