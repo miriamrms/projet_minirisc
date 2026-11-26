@@ -32,6 +32,7 @@ void platform_free(platform_t *plt) {
 int platform_read(platform_t *plt, platform_access_type_t t, uint32_t addr, uint32_t *data) {
     
     uint32_t size = t + 1; /* nombre d'octets a lire */
+    if((addr & t) != 0) return -1;
 
     /* on verifie que l'acces reste dans la memoire */
     if(addr >= START_MEMORY && addr - START_MEMORY + size <= MEMORY_SIZE) {
@@ -46,6 +47,12 @@ int platform_read(platform_t *plt, platform_access_type_t t, uint32_t addr, uint
         *data = read_data;
         return 0;
     }
+
+    if(addr >= START_PERIFERIQUE && addr < START_PERIFERIQUE + 12) {
+        *data = 0;
+        return 0;
+    }
+
     return -1; /* si adresse hors memoire */
 } 
 
