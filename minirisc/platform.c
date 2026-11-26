@@ -9,10 +9,12 @@
 
 platform_t* platform_new()
 {
+      /* Allocation de la structure de la plateforme. */
     platform_t *platform = malloc(sizeof(platform_t));
     if(platform == NULL) return NULL;
 
     platform->memory = malloc(MEMORY_SIZE);
+    /*si lallocation echoue on libere le bloc*/
     if(platform->memory == NULL){
         free(platform);
         return NULL;
@@ -21,6 +23,7 @@ platform_t* platform_new()
 }
 
 void platform_free(platform_t *plt) {
+    /*liberation de la memoire*/
     free(plt->memory);
     plt->memory = NULL;
     free(plt);
@@ -50,12 +53,16 @@ int platform_write(platform_t *plt, platform_access_type_t t, uint32_t addr, uin
     if((addr & t) !=0){
         return -1;
     }
-        if(addr >= START_MEMORY && addr - START_MEMORY + size <= MEMORY_SIZE) {
+        if(addr >= START_MEMORY && addr - START_MEMORY + size <= MEMORY_SIZE) { /*on verifie que l'addr est ds la mem*/
         uint8_t *mem = (uint8_t *) plt->memory;
         uint32_t off = addr - START_MEMORY;
 
         for(int i=0; i<size; i++){
         mem[off + i] =  (data >> (8*i)) & 0XFF;
+        /* On decoupe data en octets
+           l'octet de poids faible va à la plus petite adresse.
+           (data >> 8*i) amène l'octet n°i tout à droite,
+           & 0xFF ne garde que ces 8 bits. */
         }
     return 0;}
 
