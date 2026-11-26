@@ -10,19 +10,19 @@
 platform_t* platform_new()
 {
     platform_t *platform = malloc(sizeof(platform_t));
-    if(platform == NULL) return EXIT_FAILURE;
+    if(platform == NULL) return NULL;
 
-    platform->memoire = malloc(START_MEMORY);
+    platform->memoire = malloc(MEMORY_SIZE);
     if(platform->memoire == NULL){
         free(platform);
-        return EXIT_FAILURE;
+        return NULL;
     } 
     return platform;
 }
 
 void platform_free(platform_t *plt) {
-    plt->memoire = NULL;
     free(plt->memoire);
+    plt->memoire = NULL;
     free(plt);
 }
 
@@ -36,11 +36,12 @@ int platform_read(platform_t *plt, platform_access_type_t t, uint32_t addr, uint
         uint32_t read_data = 0;
 
         for(int i=0; i<size; i++){
-            read_data |= mem[off + i] << (8*i);
+            read_data |= (uint32_t)mem[off + i] << (8*i);
         }
-
+        *data = read_data;
+        return 0;
     }
-
+    return -1;
 } 
 
 int platform_write(platform_t *plt, platform_access_type_t t, uint32_t addr, uint32_t data) {
@@ -49,5 +50,14 @@ int platform_write(platform_t *plt, platform_access_type_t t, uint32_t addr, uin
 }
 
 int platform_load_program(platform_t *plt, const char *file_name) {
+    FILE *f = fopen(file_name, "rb");
+    if(f == NULL) return -1;
 
+    size_t n = fread(plt->memoire, 1, MEMORY_SIZE, f);
+
+    fclose(f);
+
+    if (n==0) return -1;
+    
+    return 0;
 }
